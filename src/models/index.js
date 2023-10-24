@@ -1,11 +1,9 @@
-import Inspect from './inspect.schema.js'
-import PaymentPenalties from './payment-penalties.schema.js'
+import Incidence from './incidence.schema.js'
 import Users from './users.schema.js'
 import Profiles from './profiles.schema.js'
 
 export {
-  Inspect,
-  PaymentPenalties,
+  Incidence,
   Users,
   Profiles
 }
