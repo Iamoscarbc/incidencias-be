@@ -102,7 +102,8 @@ app.post('/api/incidences', tokenVerify, async (req, res) => {
 
     res.json({
       success: true,
-      message: "Incidence created!!"
+      message: "Incidence created!!",
+      data: as._id
     })
   } catch (err) {
     console.error(err)
@@ -135,7 +136,7 @@ app.put('/api/incidence/:id', tokenVerify, async (req, res) => {
       }else{
         await fs.writeFileSync(path.join(route, req.files.file.name), req.files.file.data)
         documents = [
-          { src: path.join(route, req.files.file.name), name: req.files.file.name, type: d.mimetype }
+          { src: path.join(route, req.files.file.name), name: req.files.file.name, type: req.files.file.mimetype }
         ]
       }
   
