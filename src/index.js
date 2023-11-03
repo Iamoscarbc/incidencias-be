@@ -30,11 +30,27 @@ app.use(fileUpload())
 //Routes
 app.get('/api/incidences', tokenVerify, async (req, res) => {
     try{
-      let collection = await Incidence.find().populate({
-        path: "idUser",
-        model: Users,
-        select: "firstname lastname phone docnumber email",
-      })
+      let user = await Users.findOne({ _id: req.userId })
+      let collection
+      if(user.idProfile == '653752a46f75ce25da5cb7dd'){
+        collection = await Incidence.find({ specialist: req.userId }).populate({
+          path: "idUser",
+          model: Users,
+          select: "firstname lastname phone docnumber email",
+        })
+      }else if(user.idProfile == '653752946f75ce25da5c73e3'){
+        collection = await Incidence.find({ idUser: req.userId }).populate({
+          path: "idUser",
+          model: Users,
+          select: "firstname lastname phone docnumber email",
+        })
+      }else {
+        collection = await Incidence.find().populate({
+          path: "idUser",
+          model: Users,
+          select: "firstname lastname phone docnumber email",
+        })
+      }
       res.json({
         success: true,
         message: "Incidences obtained!!",
