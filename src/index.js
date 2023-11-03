@@ -13,7 +13,7 @@ import "./config/loadEnvironment.js"
 import mongoose from 'mongoose'
 import moment from "moment";
 
-import { Incidence, Users, Profiles } from './models/index.js'
+import { Incidence, Users, Profiles, Categories } from './models/index.js'
 
 app.use(bodyParser.urlencoded({
   extended: true,
@@ -72,10 +72,22 @@ app.get('/api/incidence/:id', tokenVerify, async (req, res) => {
 
 app.post('/api/incidences', tokenVerify, async (req, res) => {
   try{
-    let {date, description} = req.body
+    let {date, categorie, specialist, incidence, documentNumber} = req.body
+    console.log("data", {
+      date,
+      categorie,
+      specialist,
+      incidence,
+      documentNumber,
+      idUser: req.userId
+    })
+    return
     let as = await Incidence.create({
       date,
-      description,
+      categorie,
+      specialist,
+      incidence,
+      documentNumber,
       idUser: req.userId
     })
     
@@ -287,6 +299,42 @@ app.delete('/api/user/:id', tokenVerify, async (req, res) => {
   }
 })
 
+app.get('/api/userByProfile/:id', tokenVerify, async (req, res) => {
+  try{    
+    let data = await Users.find({idProfile: req.params.id}, ['firstname','lastname','phone','docnumber','email'])
+
+    res.json({
+      success: true,
+      message: "List of User By Profile " + req.params.id,
+      data
+    })
+  } catch (err) {
+    console.error(err)
+    res.json({
+      success: false,
+      error: err
+    })
+  }
+})
+
+app.get('/api/categories', tokenVerify, async (req, res) => {
+  try{    
+    let data = await Categories.find()
+
+    res.json({
+      success: true,
+      message: "List of Categories",
+      data
+    })
+  } catch (err) {
+    console.error(err)
+    res.json({
+      success: false,
+      error: err
+    })
+  }
+})
+
 app.get('/api/profiles', tokenVerify, async (req, res) => {
   try{
     let collection = await Profiles.find()
@@ -323,7 +371,7 @@ app.post('/api/auth/login', async (req, res) => {
     });
 
     // Generar un token JWT
-    const token = jwt.sign({ id: userFound._id }, 'GroverFalcon123SecretKey', { expiresIn: 86400 });
+    const token = jwt.sign({ id: userFound._id }, 'SecretKey123', { expiresIn: 86400 });
     res.status(200).json({
       success: true,
       token,
