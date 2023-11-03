@@ -173,13 +173,28 @@ app.put('/api/incidence/:id', tokenVerify, async (req, res) => {
   }
 })
 
-app.delete('/api/incidence/:id', tokenVerify, async (req, res) => {
+app.put('/api/finalize-incidence/:id', tokenVerify, async (req, res) => {
   try{    
-    await Incidence.deleteOne({_id: req.params.id})
+    await Incidence.findOneAndUpdate({_id: req.params.id},{
+      timeline: [
+        {
+          title: 'Registrada',
+          completed: true,
+        },
+        {
+          title: 'En revisión',
+          completed: true,
+        },
+        {
+          title: 'Finalizada',
+          completed: true,
+        },
+      ]
+    })
 
     res.json({
       success: true,
-      message: "Incidence deleted!!"
+      message: "Incidence finalized!!"
     })
   } catch (err) {
     console.error(err)
@@ -518,7 +533,7 @@ async function tokenVerify(req, res, next) {
   if (!token) return res.status(401).json({ success: false, mensaje: 'No se inició sesión' });
 
   try {
-    const decoded = jwt.verify(token.split(' ')[1], 'GroverFalcon123SecretKey');
+    const decoded = jwt.verify(token.split(' ')[1], 'SecretKey123');
     
     req.userId = decoded.id;
     next();
