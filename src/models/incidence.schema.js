@@ -4,10 +4,11 @@ const incidenceSchema = new mongoose.Schema({
   date: String,
   idUser: String,
   categorie: String,
-  docnumber: String,
+  documentNumber: String,
   description: String,
   documents: Array,
-  specialist: String
+  specialist: String,
+  timeline: Array
 });
 
 const Incidence = mongoose.model('incidences', incidenceSchema);

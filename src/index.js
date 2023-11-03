@@ -72,52 +72,32 @@ app.get('/api/incidence/:id', tokenVerify, async (req, res) => {
 
 app.post('/api/incidences', tokenVerify, async (req, res) => {
   try{
-    let {date, categorie, specialist, incidence, documentNumber} = req.body
-    console.log("data", {
-      date,
-      categorie,
-      specialist,
-      incidence,
-      documentNumber,
-      idUser: req.userId
-    })
-    return
+    let {date, categorie, description, documentNumber} = req.body
     let as = await Incidence.create({
       date,
+      idUser: req.userId,
       categorie,
-      specialist,
-      incidence,
       documentNumber,
-      idUser: req.userId
+      description,
+      timeline: [
+        {
+          title: 'Registrada',
+          completed: true,
+        },
+        {
+          title: 'En revisión',
+          completed: false,
+        },
+        {
+          title: 'Finalizada',
+          completed: false,
+        },
+      ]
     })
     
     let route = path.join(__dirname, `/documents/Incidences/${as._id}`)
     if(! await fs.existsSync(route)){
       await fs.mkdirSync(route)
-    }
-    if(!!req.files){
-      let documents 
-      if(!!req.files.file.length){
-        for (let i = 0; i < req.files.file.length; i++) {
-          const d = req.files.file[i];
-          await fs.writeFileSync(path.join(route, d.name), d.data)
-        }
-        documents = req.files.file.map(d => {
-          return {
-            path: path.join(route, d.name),
-            name: d.name
-          }
-        })
-      }else{
-        await fs.writeFileSync(path.join(route, req.files.file.name), req.files.file.data)
-        documents = [
-          { path: path.join(route, req.files.file.name), name: req.files.file.name }
-        ]
-      }
-  
-      await Incidence.findOneAndUpdate({_id: as._id},{
-        documents,
-      })
     }
 
     res.json({
@@ -135,13 +115,49 @@ app.post('/api/incidences', tokenVerify, async (req, res) => {
 
 app.put('/api/incidence/:id', tokenVerify, async (req, res) => {
   try{
-    console.log("req.body", req)
-    let {description} = req.body
-    console.log("description", description)
-    
-    await Incidence.findOneAndUpdate({_id: req.params.id},{
-      description
-    })
+    let { specialist } = req.body
+
+    if(!!req.files){
+      let route = path.join(__dirname, `/documents/Incidences/${req.params.id}`)
+      let documents 
+      if(!!req.files.file.length){
+        for (let i = 0; i < req.files.file.length; i++) {
+          const d = req.files.file[i];
+          await fs.writeFileSync(path.join(route, d.name), d.data)
+        }
+        documents = req.files.file.map(d => {
+          return {
+            src: path.join(route, d.name),
+            name: d.name,
+            type: d.mimetype
+          }
+        })
+      }else{
+        await fs.writeFileSync(path.join(route, req.files.file.name), req.files.file.data)
+        documents = [
+          { src: path.join(route, req.files.file.name), name: req.files.file.name, type: d.mimetype }
+        ]
+      }
+  
+      await Incidence.findOneAndUpdate({_id: req.params.id},{
+        documents,
+        specialist,
+        timeline: [
+          {
+            title: 'Registrada',
+            completed: true,
+          },
+          {
+            title: 'En revisión',
+            completed: true,
+          },
+          {
+            title: 'Finalizada',
+            completed: false,
+          },
+        ]
+      })
+    }
 
     res.json({
       success: true,
@@ -171,6 +187,11 @@ app.delete('/api/incidence/:id', tokenVerify, async (req, res) => {
       error: err
     })
   }
+})
+
+app.get('/api/files/:id/:name', (req, res) => {
+  let route = path.join(__dirname, `/documents/Incidences/${req.params.id}`, req.params.name)
+  res.sendFile(route)
 })
 
 app.get('/api/users', tokenVerify, async (req, res) => {
