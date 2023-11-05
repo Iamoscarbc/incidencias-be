@@ -505,8 +505,23 @@ app.get('/api/indicators/:period', tokenVerify, async (req, res) => {
       }
       let incidences = await Incidence.aggregate([
         {
+          $project: {
+            dateNew: {
+              $dateFromString: {
+                dateString: '$date',
+                format: '%d/%m/%Y %H:%M:%S'
+              }
+            },
+            date: '$date',
+            timeline: '$timeline'
+          }
+        },
+        {
           $match: {
-            date: between
+            dateNew: {
+              $gte: new Date(startDate),
+              $lt: new Date(endDate)
+            }
           }
         }
       ])
@@ -518,11 +533,12 @@ app.get('/api/indicators/:period', tokenVerify, async (req, res) => {
           if (index <= 9) {
               day = "0" + index
           }
-          const fechaX = `${period}${day}`
-          let fechaPP = moment(fechaX, "YYYYMMDD").format("YYYY-MM-DD");
-          const listI = incidences.filter(x => x.date == fechaPP)
+          const fechaX = `${period}-${day}`
+          const listI = incidences.filter(x => moment(x.date, 'DD/MM/YYYY hh:mm:ss').format("YYYY-MM-DD") == fechaX)
+          const incidencesEnded = listI.filter(x => x.timeline[2].completed)
           const body = {
             incidences: listI.length,
+            incidencesEnded: incidencesEnded.length,
             date: moment(fechaX, "YYYYMMDD").format("DD/MM/YYYY")
           }
           responseGraphic1.push(body)
