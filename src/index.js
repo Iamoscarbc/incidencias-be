@@ -574,8 +574,6 @@ app.get('/api/indicators/:period', tokenVerify, async (req, res) => {
         }
       ])
 
-      console.log("responseGraphic2", responseGraphic2)
-
       res.json({
         success: true,
         message: "Indicators obtained!!",
