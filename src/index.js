@@ -174,6 +174,24 @@ app.put('/api/incidence/:id', tokenVerify, async (req, res) => {
           },
         ]
       })
+    }else{
+      await Incidence.findOneAndUpdate({_id: req.params.id},{
+        specialist,
+        timeline: [
+          {
+            title: 'Registrada',
+            completed: true,
+          },
+          {
+            title: 'En revisión',
+            completed: true,
+          },
+          {
+            title: 'Finalizada',
+            completed: false,
+          },
+        ]
+      })
     }
 
     res.json({
@@ -228,7 +246,7 @@ app.get('/api/files/:id/:name', (req, res) => {
 
 app.get('/api/users', tokenVerify, async (req, res) => {
     try{
-      let collection = await Users.find().populate({
+      let collection = await Users.find({ state: 1 }, ['firstname','lastname','phone','docnumber','email']).populate({
         path: "idProfile",
         model: Profiles,
         select: "name",
@@ -249,11 +267,7 @@ app.get('/api/users', tokenVerify, async (req, res) => {
 
 app.get('/api/user/:id', tokenVerify, async (req, res) => {
     try{
-      let collection = await Users.findById(req.params.id, 'user firstname lastname docnumber phone codemployee idProfile').populate({
-        path: "idProfile",
-        model: Profiles,
-        select: "name",
-      })
+      let collection = await Users.findById(req.params.id, 'firstname lastname docnumber phone email idProfile')
       collection.password = ''
       res.json({
         success: true,
@@ -288,7 +302,8 @@ app.post('/api/user', tokenVerify, async (req, res) => {
       docnumber,
       email,
       password: hash,
-      idProfile
+      idProfile,
+      state: 1
     });
 
     res.status(201).json({
@@ -310,15 +325,19 @@ app.put('/api/user/:id', tokenVerify, async (req, res) => {
 
     const hash = await bcrypt.hash(password, 10);
 
-    await Users.findOneAndUpdate({_id: req.params.id}, {
+    let json = {
       firstname,
       lastname,
       phone,
       docnumber,
       email,
-      password: hash,
       idProfile
-    })
+    }
+    if(!!password){
+      json.password = hash
+    }
+
+    await Users.findOneAndUpdate({_id: req.params.id}, json)
 
     res.json({
       success: true,
