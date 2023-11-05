@@ -546,21 +546,35 @@ app.get('/api/indicators/:period', tokenVerify, async (req, res) => {
 
       let responseGraphic2 = await Incidence.aggregate([
         {
+          $project: {
+            dateNew: {
+              $dateFromString: {
+                dateString: '$date',
+                format: '%d/%m/%Y %H:%M:%S'
+              }
+            },
+            date: '$date',
+            timeline: '$timeline',
+            documentNumber: '$documentNumber'
+          }
+        },
+        {
           $match: {
-            date: between
+            dateNew: {
+              $gte: new Date(startDate),
+              $lt: new Date(endDate)
+            }
           }
         },
         {
           $group:{
-            _id: "$idUser",
+            _id: "$documentNumber",
             count: { $sum: 1 }
           }
         }
       ])
-      await Users.populate(responseGraphic2, {
-        path: '_id',
-        select: 'user'
-      })
+
+      console.log("responseGraphic2", responseGraphic2)
 
       res.json({
         success: true,
