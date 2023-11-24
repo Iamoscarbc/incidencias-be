@@ -12,7 +12,7 @@ const __dirname = path.dirname(__filename)
 import "./config/loadEnvironment.js"
 import mongoose from 'mongoose'
 import moment from "moment";
-const cors = require('cors');
+import cors from 'cors';
 
 import { Incidence, Users, Profiles, Categories } from './models/index.js'
 
