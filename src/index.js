@@ -13,6 +13,18 @@ import "./config/loadEnvironment.js"
 import mongoose from 'mongoose'
 import moment from "moment";
 import cors from 'cors';
+import nodemailer from 'nodemailer'
+
+const transporter = nodemailer.createTransport({
+  host: 'smtp.gmail.com',
+  port: 587,
+  secure: false,
+  requireTLS: true,
+  auth: {
+      user: process.env.NODEMAILER_user,
+      pass: process.env.NODEMAILER_pass
+  }
+})
 
 import { Incidence, Users, Profiles, Categories } from './models/index.js'
 
@@ -195,6 +207,23 @@ app.put('/api/incidence/:id', tokenVerify, async (req, res) => {
           },
         ]
       })
+    }
+
+    const mailOptions = {
+      from: process.env.NODEMAILER_user,
+      to: specialist,
+      subject: `Incidencia asignada`,
+      html: `<strong>Revisa la plataforma, hay nueva incidencia asignada</strong>
+      <br/>
+      <a href="http://206.189.176.12:3003">Revisar en plataforma</a>`
+    }
+
+    try {
+      await transporter.sendMail(mailOptions);
+      console.log("Send email")
+    }
+    catch (error) {
+        console.log('error', error)
     }
 
     res.json({
