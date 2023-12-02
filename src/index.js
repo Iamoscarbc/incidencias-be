@@ -26,7 +26,7 @@ const transporter = nodemailer.createTransport({
   }
 })
 
-import { Incidence, Users, Profiles, Categories } from './models/index.js'
+import { Incidence, Users, Profiles, Categories, Student } from './models/index.js'
 
 app.use(cors({ origin: '*' }));
 
@@ -103,12 +103,12 @@ app.get('/api/incidence/:id', tokenVerify, async (req, res) => {
 
 app.post('/api/incidences', tokenVerify, async (req, res) => {
   try{
-    let {date, categorie, description, documentNumber} = req.body
+    let {date, categorie, description, idStudent} = req.body
     let as = await Incidence.create({
       date,
       idUser: req.userId,
       categorie,
-      documentNumber,
+      idStudent,
       description,
       timeline: [
         {
@@ -587,7 +587,7 @@ app.get('/api/indicators/:period', tokenVerify, async (req, res) => {
             },
             date: '$date',
             timeline: '$timeline',
-            documentNumber: '$documentNumber'
+            idStudent: '$idStudent'
           }
         },
         {
@@ -600,7 +600,7 @@ app.get('/api/indicators/:period', tokenVerify, async (req, res) => {
         },
         {
           $group:{
-            _id: "$documentNumber",
+            _id: "$idStudent",
             count: { $sum: 1 }
           }
         }
@@ -621,6 +621,24 @@ app.get('/api/indicators/:period', tokenVerify, async (req, res) => {
         error: err
       })
     }
+})
+
+app.get('/api/students', tokenVerify, async (req, res) => {
+  try{    
+    let data = await Student.find()
+
+    res.json({
+      success: true,
+      message: "List of Students",
+      data
+    })
+  } catch (err) {
+    console.error(err)
+    res.json({
+      success: false,
+      error: err
+    })
+  }
 })
 
 async function tokenVerify(req, res, next) {

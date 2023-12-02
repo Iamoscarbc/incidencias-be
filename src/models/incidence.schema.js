@@ -4,7 +4,7 @@ const incidenceSchema = new mongoose.Schema({
   date: String,
   idUser: String,
   categorie: String,
-  documentNumber: String,
+  idStudent: String,
   description: String,
   documents: Array,
   specialist: String,
